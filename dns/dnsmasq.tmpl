@@ -1,8 +1,0 @@
-{{ range $container := . }}
-{{ if eq $container.State.Running true }}
-{{ if $container.IP }}{{ $container.IP }} {{ trimPrefix "/" $container.Name }}{{ end }}
-{{ range $network := $container.Networks }}
-{{ $network.IP }} {{ trimPrefix "/" $container.Name }}
-{{ end }}
-{{ end }}
-{{ end }}
