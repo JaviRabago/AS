@@ -1,0 +1,8 @@
+{
+    "template": [
+        {
+            "source": "/etc/dnsmasq.tmpl",
+            "dest": "/etc/dnsmasq.hosts"
+        }
+    ]
+}
