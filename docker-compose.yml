@@ -157,11 +157,11 @@ services:
     depends_on:
       - router
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "mysql", "-pmysql"]
-      interval: 10s
-      timeout: 10s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 5s
 
 
   # Apache (Desarrollo)
@@ -194,6 +194,7 @@ services:
         ipv4_address: 172.20.0.100
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - nas_data:/backups
     restart: unless-stopped
 
 networks:
@@ -216,3 +217,4 @@ networks:
 volumes:
   postgres_data:
   mysql_data:
+  nas_data:

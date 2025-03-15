@@ -17,10 +17,10 @@ restart:
 logdns:
 	docker logs dns_server
 
-pruebas:
-	docker exec -it dns_server cat /etc/dnsmasq.hosts
-	docker exec -it dns_server nslookup prod_container
-	docker exec -it prod_container ping dev_container
+ping:
+	docker exec -it dev-apache ping -c 2 prod-postgres
+	docker exec -it prod-app ping -c 2 dev-app
+	docker exec -it dev-apache traceroute prod-postgres
 
 dnsbash:
 	docker exec -it dns_server /bin/bash
@@ -39,3 +39,6 @@ testcontainerdown:
 
 tcp:
 	docker exec -it router tcpdump -i eth0 -n
+
+copia:
+	docker exec dns_server /backup.sh
