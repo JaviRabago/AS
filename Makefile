@@ -36,3 +36,6 @@ testcontainer:
 
 testcontainerdown:
 	docker rm -f test_container
+
+tcp:
+	docker exec -it router tcpdump -i eth0 -n
