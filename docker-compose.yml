@@ -54,8 +54,6 @@ services:
     image: nginx:alpine
     container_name: prod-nginx
     restart: always
-    # ports:
-    #   - "80:80"
     volumes:
       - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf
       - ./nginx/nginx-wrapper.sh:/nginx-wrapper.sh
@@ -136,7 +134,6 @@ services:
 
   # MySQL (Desarrollo)
   mysql:
-    # image: mysql:8
     build:
       context: ./mysql
       dockerfile: Dockerfile.mysql
@@ -161,9 +158,6 @@ services:
       - router
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "mysql", "-pmysql"]
-      # interval: 5s
-      # timeout: 5s
-      # retries: 5
       interval: 10s
       timeout: 10s
       retries: 5
@@ -175,8 +169,6 @@ services:
     image: httpd:alpine
     container_name: dev-apache
     restart: always
-    # ports:
-    #   - "8080:80"
     volumes:
       - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./apache/dev.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf

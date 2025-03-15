@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Configurar 172.40.0.2 como ruta predeterminada para todo el tráfico
+ip route del default
+ip route add default via 172.40.0.2
+
 # Asegurarse de que dnsmasq no esté corriendo
 killall dnsmasq 2>/dev/null || true
 
