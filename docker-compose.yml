@@ -9,15 +9,17 @@ services:
         ipv4_address: 172.40.0.2
       service:
         ipv4_address: 172.20.0.2
+      vpn_network:
+        ipv4_address: 172.10.0.2
     ports:
       - "80:80"
       - "8080:8080"
+      - "1194:1194/udp"
     cap_add:
       - NET_ADMIN
     sysctls:
       - net.ipv4.ip_forward=1
     restart: unless-stopped
-
 
   # Aplicación en entorno de producción
   app-prod:
@@ -98,6 +100,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   # Aplicación en entorno de desarrollo
   app-dev:
@@ -160,8 +163,8 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 5s
+      retries: 15
+      start_period: 60s
 
 
   # Apache (Desarrollo)
@@ -197,6 +200,23 @@ services:
       - nas_data:/backups
     restart: unless-stopped
 
+  # Nuevo contenedor VPN
+  openvpn:
+    image: kylemanna/openvpn
+    container_name: openvpn
+    cap_add:
+      - NET_ADMIN
+    networks:
+      vpn_network:
+        ipv4_address: 172.10.0.3
+    volumes:
+      - openvpn_data:/etc/openvpn
+      - ./openvpn/setup-vpn.sh:/setup-vpn.sh
+    restart: unless-stopped
+    depends_on:
+      - router
+    entrypoint: ["/bin/sh", "/setup-vpn.sh"]
+
 networks:
   production:
     driver: bridge
@@ -213,8 +233,14 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/24
+  vpn_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.10.0.0/24
 
 volumes:
   postgres_data:
   mysql_data:
   nas_data:
+  openvpn_data:

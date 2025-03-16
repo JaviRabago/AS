@@ -17,6 +17,9 @@ restart:
 logdns:
 	docker logs dns_server
 
+logmysql:
+	docker logs dev-mysql
+
 ping:
 	docker exec -it dev-apache ping -c 2 prod-postgres
 	docker exec -it prod-app ping -c 2 dev-app
@@ -42,3 +45,14 @@ tcp:
 
 copia:
 	docker exec dns_server /backup.sh
+
+extraer:
+	docker exec -it openvpn bash -c "ovpn_getclient dev_user > /etc/openvpn/clients/dev_user.ovpn"
+	docker exec -it openvpn bash -c "ovpn_getclient svc_prod_user > /etc/openvpn/clients/svc_prod_user.ovpn"
+	docker cp openvpn:/etc/openvpn/clients/dev_user.ovpn ./dev_user.ovpn
+	docker cp openvpn:/etc/openvpn/clients/svc_prod_user.ovpn ./svc_prod_user.ovpn
+
+push:
+	git add .
+	git commit -m "update"
+	git push
