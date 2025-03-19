@@ -33,7 +33,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Función para intentar la conexión a la base de datos con reintentos
-async function connectWithRetry(maxRetries = 5, delay = 5000) {
+async function connectWithRetry(maxRetries = 25, delay = 15000) {
   let retries = 0;
   
   while (retries < maxRetries) {

@@ -54,5 +54,5 @@ extraer:
 
 push:
 	git add .
-	git commit -m "update"
+	git commit -m "update tiempos"
 	git push
