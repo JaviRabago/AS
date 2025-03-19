@@ -37,9 +37,6 @@ testcontainer:
   --cap-add NET_ADMIN \
   alpine sleep infinity
 
-testcontainerdown:
-	docker rm -f test_container
-
 tcp:
 	docker exec -it router tcpdump -i eth0 -n
 
@@ -52,7 +49,13 @@ extraer:
 	docker cp openvpn:/etc/openvpn/clients/dev_user.ovpn ./dev_user.ovpn
 	docker cp openvpn:/etc/openvpn/clients/svc_prod_user.ovpn ./svc_prod_user.ovpn
 
+condev:
+	sudo openvpn --config dev_user.ovpn
+
+conprod:
+	sudo openvpn --config svc_prod_user.ovpn
+
 push:
 	git add .
-	git commit -m "update tiempos"
+	git commit -m "usuario john en router + openvpn mejorado"
 	git push

@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# Configurar 172.10.0.2 como ruta predeterminada para todo el tráfico
+ip route del default
+ip route add default via 172.10.0.2
+
+
 # Variables
 OVPN_DATA="/etc/openvpn"
 EASYRSA_DIR="/usr/share/easy-rsa"

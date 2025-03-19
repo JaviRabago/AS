@@ -95,6 +95,11 @@ iptables -t nat -A PREROUTING -p udp --dport 1194 -j DNAT --to-destination $OPEN
 # Permitir el tráfico reenviado al puerto 1194 de OpenVPN
 iptables -A FORWARD -p udp -d $OPENVPN_IP --dport 1194 -j ACCEPT
 
+# Permitir conexiones SSH desde clientes VPN al router
+iptables -A INPUT -p tcp -s 10.8.0.0/24 --dport 22 -j ACCEPT
+# Permitir conexiones SSH al router desde cualquier red
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+
 echo 'IP forwarding status:'
 cat /proc/sys/net/ipv4/ip_forward
 
@@ -103,5 +108,8 @@ iptables -L -v -n
 
 echo 'NAT rules:'
 iptables -t nat -L -v -n
+
+echo "Iniciando servicio SSH..."
+/usr/sbin/sshd -D &
 
 tail -f /dev/null
