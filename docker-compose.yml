@@ -54,7 +54,9 @@ services:
 
   # Nginx (Producción)
   nginx:
-    image: nginx:alpine
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.nginx
     container_name: prod-nginx
     restart: always
     volumes:
@@ -71,7 +73,6 @@ services:
     depends_on:
       - app-prod
       - router
-    entrypoint: ["/bin/sh", "nginx-wrapper.sh"]
 
   # PostgreSQL (Producción)
   postgres:

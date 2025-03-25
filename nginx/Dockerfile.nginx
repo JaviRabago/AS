@@ -1,0 +1,33 @@
+FROM nginx:alpine
+
+# Instalar SSH y otras dependencias necesarias
+RUN apk add --no-cache openssh openrc bash shadow sudo
+
+# Configurar el servicio SSH
+RUN mkdir -p /run/openrc && \
+    touch /run/openrc/softlevel && \
+    rc-update add sshd && \
+    mkdir -p /root/.ssh && \
+    chmod 700 /root/.ssh
+
+# Crear el usuario john con la contraseña especificada
+RUN adduser -D john && \
+    echo "john:password" | chpasswd && \
+    mkdir -p /home/john/.ssh && \
+    chmod 700 /home/john/.ssh && \
+    chown -R john:john /home/john
+
+# Configurar sudo para el usuario john
+RUN echo "john ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/john
+
+# Configurar SSH para permitir login con contraseña
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# Copiar el script de inicio
+COPY nginx-wrapper.sh /nginx-wrapper.sh
+RUN chmod +x /nginx-wrapper.sh
+
+EXPOSE 22 80
+
+ENTRYPOINT ["/nginx-wrapper.sh"]
