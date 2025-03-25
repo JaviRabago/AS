@@ -1,5 +1,22 @@
 FROM node:18-alpine
 
+# Instalar OpenSSH Server y dependencias necesarias
+RUN apk add --no-cache openssh shadow supervisor && \
+    ssh-keygen -A
+
+# Crear usuario john y establecer contraseña
+RUN useradd -m john && \
+    echo "john:password" | chpasswd
+
+# Configurar SSH
+RUN mkdir -p /var/run/sshd && \
+    echo "PermitRootLogin no" >> /etc/ssh/sshd_config && \
+    echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \
+    mkdir -p /etc/supervisor.d/
+
+# Configurar supervisord para gestionar los procesos
+COPY ./app/supervisord.conf /etc/supervisord.conf
+
 WORKDIR /app
 
 COPY ./app/package*.json ./
@@ -8,6 +25,4 @@ RUN npm install --omit=dev
 
 COPY ./app .
 
-EXPOSE 3000
-
-CMD ["node", "index.js"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

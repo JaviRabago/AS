@@ -21,8 +21,12 @@ mkdir -p ${CLIENTS_DIR}
 if [ ! -f "$OVPN_DATA/openvpn.conf" ]; then
     echo "Inicializando OpenVPN..."
     
-    # Generar configuración inicial
-    ovpn_genconfig -u udp://vpnserver -s 10.8.0.0/24 -p "route 172.40.0.0 255.255.255.0" -p "route 172.30.0.0 255.255.255.0" -p "route 172.20.0.0 255.255.255.0"
+    # Generar configuración inicial con DNS
+    ovpn_genconfig -u udp://vpnserver -s 10.8.0.0/24 \
+      -p "route 172.40.0.0 255.255.255.0" \
+      -p "route 172.30.0.0 255.255.255.0" \
+      -p "route 172.20.0.0 255.255.255.0" \
+      -p "dhcp-option DNS 172.20.0.100"
     
     # Iniciar PKI y crear CA no interactivamente
     echo "Generando PKI y CA..."
@@ -34,6 +38,12 @@ if [ ! -f "$OVPN_DATA/openvpn.conf" ]; then
     
     # Modificar configuración del servidor para usar CCD
     echo "client-config-dir ccd" >> ${OVPN_DATA}/openvpn.conf
+else
+    # Si ya existe la configuración, asegurarse de que tenga la configuración DNS
+    if ! grep -q "dhcp-option DNS 172.20.0.100" ${OVPN_DATA}/openvpn.conf; then
+        echo "Añadiendo configuración DNS al servidor..."
+        echo 'push "dhcp-option DNS 172.20.0.100"' >> ${OVPN_DATA}/openvpn.conf
+    fi
 fi
 
 # Verificar y crear certificado para dev_user si no existe

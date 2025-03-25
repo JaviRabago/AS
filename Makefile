@@ -55,7 +55,11 @@ condev:
 conprod:
 	sudo openvpn --config svc_prod_user.ovpn
 
+conmysql:
+	mysql -h 172.40.0.3 -u john -pmysql tasksdb
+
 push:
 	git add .
 	git commit -m "usuario john en router + openvpn mejorado"
 	git push
+
