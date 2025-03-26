@@ -1,5 +1,8 @@
 #!/bin/bash
 
+MYSQL_IP=$(grep "dev-mysql" /etc/dnsmasq.hosts | awk '{print $1}')
+POSTGRES_IP=$(grep "prod-postgres" /etc/dnsmasq.hosts | awk '{print $1}')
+
 # Configuración de variables
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 MYSQL_BACKUP_DIR="/backups/mysql"
@@ -18,7 +21,9 @@ mkdir -p $MYSQL_BACKUP_DIR $POSTGRES_BACKUP_DIR
 
 # Backup de MySQL
 log_message "Iniciando backup de MySQL"
-mysqldump -h dev-mysql -u mysql -pmysql --all-databases > $MYSQL_BACKUP_DIR/mysql_all_${TIMESTAMP}.sql 2>/dev/null
+# mysqldump -h dev-mysql -u john -pmysql --all-databases > $MYSQL_BACKUP_DIR/mysql_all_${TIMESTAMP}.sql
+#  2>/dev/null
+mysqldump -h $MYSQL_IP -u john -pmysql --all-databases > $MYSQL_BACKUP_DIR/mysql_all_${TIMESTAMP}.sql
 if [ $? -eq 0 ]; then
     log_message "Backup de MySQL completado exitosamente"
     # Comprimir backup
@@ -30,7 +35,9 @@ fi
 
 # Backup de PostgreSQL
 log_message "Iniciando backup de PostgreSQL"
-PGPASSWORD=postgres pg_dump -h prod-postgres -U postgres -d tasksdb > $POSTGRES_BACKUP_DIR/postgres_tasksdb_${TIMESTAMP}.sql 2>/dev/null
+# PGPASSWORD=postgres pg_dump -h prod-postgres -U john -d tasksdb > $POSTGRES_BACKUP_DIR/postgres_tasksdb_${TIMESTAMP}.sql
+#  2>/dev/null
+PGPASSWORD=postgres pg_dump -h $POSTGRES_IP -U john -d tasksdb > $POSTGRES_BACKUP_DIR/postgres_tasksdb_${TIMESTAMP}.sql
 if [ $? -eq 0 ]; then
     log_message "Backup de PostgreSQL completado exitosamente"
     # Comprimir backup

@@ -207,7 +207,11 @@ services:
         ipv4_address: 172.20.0.100
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    cap_add:
+      - NET_ADMIN
     restart: unless-stopped
+    depends_on:
+      - router
 
   # Nuevo contenedor VPN
   openvpn:

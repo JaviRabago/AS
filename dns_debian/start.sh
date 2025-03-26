@@ -1,11 +1,18 @@
 #!/bin/bash
 
-# Configurar 172.40.0.2 como ruta predeterminada para todo el tráfico
+# Configurar 172.20.0.2 como ruta predeterminada para todo el tráfico
 ip route del default
-ip route add default via 172.40.0.2
+ip route add default via 172.20.0.2
 
 # Asegurarse de que dnsmasq no esté corriendo
 killall dnsmasq 2>/dev/null || true
+
+# Crear usuario john si no existe
+if ! id -u john >/dev/null 2>&1; then
+  useradd -m -s /bin/bash john
+  echo "john:password" | chpasswd
+  echo "Usuario john creado correctamente"
+fi
 
 # Crear el archivo de hosts si no existe
 touch /etc/dnsmasq.hosts
@@ -37,10 +44,6 @@ echo "Iniciando servicios de NAS..."
 
 # Iniciar SSH para acceso remoto
 /usr/sbin/sshd
-
-# Iniciar Samba para compartir archivos
-service smbd start
-service nmbd start
 
 # Iniciar cron para backups programados
 service cron start

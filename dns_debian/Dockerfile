@@ -5,7 +5,7 @@ RUN mkdir -p /etc/docker-gen/templates /backups/mysql /backups/postgres
 # Instalar dependencias básicas y NAS
 RUN apt-get update && \
     apt-get install -y dnsmasq wget ca-certificates net-tools iproute2 \
-    rsync cron samba samba-common-bin openssh-server nano && \
+    rsync cron openssh-server postgresql-client nano && \
     rm -rf /var/lib/apt/lists/*
 
 # Configurar Docker Gen
@@ -19,7 +19,6 @@ COPY dnsmasq.conf /etc/dnsmasq.conf
 COPY dnsmasq.tmpl /etc/docker-gen/templates/dnsmasq.tmpl
 COPY start.sh /start.sh
 COPY backup.sh /backup.sh
-COPY smb.conf /etc/samba/smb.conf
 
 # Configurar permisos
 RUN chmod +x /start.sh /backup.sh && \
