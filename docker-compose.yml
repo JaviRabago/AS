@@ -198,6 +198,17 @@ services:
     environment:
       - DEBUG=1  # Variable para ayudar en la depuración
 
+
+  dns_server:
+    build: ./dns_debian
+    container_name: dns_server
+    networks:
+      service:
+        ipv4_address: 172.20.0.100
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
   # Nuevo contenedor VPN
   openvpn:
     image: kylemanna/openvpn
