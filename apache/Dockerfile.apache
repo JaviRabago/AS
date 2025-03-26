@@ -1,0 +1,34 @@
+FROM httpd:alpine
+
+# Instalar OpenSSH y otras dependencias necesarias
+RUN apk add --no-cache openssh openssh-server iproute2 supervisor procps curl net-tools
+
+# Configurar SSH
+RUN mkdir -p /var/run/sshd && \
+    ssh-keygen -A && \
+    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
+    echo "root:password" | chpasswd && \
+    adduser -D john && \
+    echo "john:password" | chpasswd && \
+    mkdir -p /home/john/.ssh && \
+    chmod 700 /home/john/.ssh && \
+    chown -R john:john /home/john
+
+# Crear directorios necesarios
+RUN mkdir -p /etc/supervisor.d/ /var/log/apache /var/log/supervisor
+
+# Verificar que los módulos de Apache estén disponibles
+RUN ls -la /usr/local/apache2/modules/
+
+# Asegurarse de que los permisos en la configuración de Apache sean correctos
+RUN chmod 644 /usr/local/apache2/conf/httpd.conf || true
+
+# Puerto SSH estándar y el puerto de Apache
+EXPOSE 22 80
+
+# Crear un script de arranque para verificar la configuración antes de iniciar
+COPY start-services.sh /start-services.sh
+RUN chmod +x /start-services.sh
+
+# Usar el script de arranque para iniciar los servicios
+CMD ["/start-services.sh"]

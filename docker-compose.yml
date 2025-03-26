@@ -98,7 +98,7 @@ services:
       - router
     entrypoint: ["/bin/sh", "postgres-wrapper.sh"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U john"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -170,15 +170,20 @@ services:
       start_period: 60s
 
 
-  # Apache (Desarrollo)
+  # Apache (Desarrollo) con SSH
   apache:
-    image: httpd:alpine
+    build:
+      context: ./apache
+      dockerfile: Dockerfile.apache
     container_name: dev-apache
     restart: always
     volumes:
-      - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
-      - ./apache/dev.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf
-      - ./apache/apache-wrapper.sh:/apache-wrapper.sh
+      - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+      - ./apache/dev.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf:ro
+      - ./apache/apache-wrapper.sh:/apache-wrapper.sh:ro
+      - ./apache/supervisord.conf:/etc/supervisord.conf:ro
+      - ./apache/apache-ssh-supervisor.conf:/etc/supervisor.d/apache-ssh-supervisor.conf:ro
+      - ./apache/start-services.sh:/start-services.sh:ro
     networks:
       - development
     cap_add:
@@ -190,18 +195,8 @@ services:
     depends_on:
       - app-dev
       - router
-    entrypoint: ["/bin/sh", "/apache-wrapper.sh"]
-
-  dns_server:
-    build: ./dns_debian
-    container_name: dns_server
-    networks:
-      service:
-        ipv4_address: 172.20.0.100
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - nas_data:/backups
-    restart: unless-stopped
+    environment:
+      - DEBUG=1  # Variable para ayudar en la depuración
 
   # Nuevo contenedor VPN
   openvpn:

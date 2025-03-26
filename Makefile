@@ -63,3 +63,5 @@ push:
 	git commit -m "usuario john en router + openvpn mejorado"
 	git push
 
+borrarhosts:
+	ssh-keygen -f '/home/javi/.ssh/known_hosts' -R '172.40.0.5'
