@@ -21,9 +21,10 @@ logmysql:
 	docker logs dev-mysql
 
 ping:
-	docker exec -it dev-apache ping -c 2 prod-postgres
-	docker exec -it prod-app ping -c 2 dev-app
-	docker exec -it dev-apache traceroute prod-postgres
+	./pruebasping.sh
+
+dns:
+	./pruebadns.sh
 
 dnsbash:
 	docker exec -it dns_server /bin/bash

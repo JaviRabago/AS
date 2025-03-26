@@ -13,18 +13,44 @@ iptables -t nat -A POSTROUTING -s 172.10.0.0/24 -j MASQUERADE
 # Enmascaramiento para clientes conectados a la VPN
 iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE
 
-# Reglas de reenvío existentes
-iptables -A FORWARD -i eth0 -o eth1 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth0 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth1 -j ACCEPT
-# Nueva regla para incluir la interfaz de la red VPN (eth3)
-iptables -A FORWARD -i eth3 -o eth0 -j ACCEPT
-iptables -A FORWARD -i eth3 -o eth1 -j ACCEPT
-iptables -A FORWARD -i eth3 -o eth2 -j ACCEPT
-iptables -A FORWARD -i eth0 -o eth3 -j ACCEPT
-iptables -A FORWARD -i eth1 -o eth3 -j ACCEPT
-iptables -A FORWARD -i eth2 -o eth3 -j ACCEPT
+# Eliminar las reglas de reenvío existentes y definirlas de forma selectiva
+# para implementar la política de comunicación requerida
+
+# --- POLÍTICA DE COMUNICACIÓN ENTRE REDES ---
+echo "Configurando política de comunicación entre redes..."
+# Service puede comunicarse con development
+# iptables -A FORWARD -i eth2 -o eth1 -j ACCEPT  # service -> development
+# iptables -A FORWARD -i eth1 -o eth2 -j ACCEPT  # development -> service (para respuestas)
+
+# Production NO puede comunicarse con service ni development
+# No añadimos reglas para estas comunicaciones
+
+# EXCEPCIÓN: Permitir que postgres (en red production) se comunique con nas
+# Primero identificamos la IP de postgres
+POSTGRES_IP=$(getent hosts prod-postgres | awk '{ print $1 }')
+# if [ -z "$POSTGRES_IP" ]; then
+#     echo "No se pudo obtener la IP de postgres, usando el rango de la red production"
+#     # Si no podemos obtener la IP específica, usamos la subred completa con precaución
+#     iptables -A FORWARD -s 172.30.0.0/24 -d 172.20.0.0/24 -m comment --comment "Excepción: postgres -> nas" -j ACCEPT
+#     iptables -A FORWARD -s 172.20.0.0/24 -d 172.30.0.0/24 -m comment --comment "Excepción: nas -> postgres (respuestas)" -j ACCEPT
+# else
+    echo "IP de postgres detectada: $POSTGRES_IP"
+    # Permitir comunicación específica de postgres a service
+    iptables -A FORWARD -s $POSTGRES_IP -d 172.20.0.0/24 -m comment --comment "Excepción: postgres -> nas" -j ACCEPT
+    iptables -A FORWARD -s 172.20.0.0/24 -d $POSTGRES_IP -m comment --comment "Excepción: nas -> postgres (respuestas)" -j ACCEPT
+# fi
+
+# Permitir que todas las redes alcancen internet (eth0)
+# iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT  # development -> internet
+# iptables -A FORWARD -i eth2 -o eth0 -j ACCEPT  # service -> internet
+# iptables -A FORWARD -i eth3 -o eth0 -j ACCEPT  # vpn_network -> internet
+# iptables -A FORWARD -i eth0 -o eth1 -j ACCEPT  # internet -> development (respuestas)
+# iptables -A FORWARD -i eth0 -o eth2 -j ACCEPT  # internet -> service (respuestas)
+# iptables -A FORWARD -i eth0 -o eth3 -j ACCEPT  # internet -> vpn_network (respuestas)
+
+# Permitir que production alcance internet
+# iptables -A FORWARD -i eth0 -o eth0 -j ACCEPT  # production -> internet
+# iptables -A FORWARD -i eth0 -o eth0 -j ACCEPT  # internet -> production (respuestas)
 
 # --- Configuración para control de acceso VPN ---
 # Control para dev_user: solo acceso a red development (172.40.0.0/24)

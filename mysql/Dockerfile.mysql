@@ -1,7 +1,7 @@
 FROM mysql:8
 
 # Instalar herramientas de red
-RUN microdnf update -y && microdnf install -y iproute
+RUN microdnf update -y && microdnf install -y iproute iputils
 
 # Crear script de inicio personalizado
 COPY mysql-entrypoint.sh /mysql-entrypoint.sh
