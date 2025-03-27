@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Configurar 172.20.0.2 como ruta predeterminada para todo el tráfico
+# Configurar 172.20.0.150 como ruta predeterminada para todo el tráfico
 ip route del default
-ip route add default via 172.20.0.2
+ip route add default via 172.20.0.150
 
 # Asegurarse de que dnsmasq no esté corriendo
 killall dnsmasq 2>/dev/null || true
@@ -18,7 +18,8 @@ fi
 touch /etc/dnsmasq.hosts
 
 # Iniciar dnsmasq en modo no-daemon (foreground) con opciones explícitas
-dnsmasq --no-daemon --log-queries --keep-in-foreground --log-facility=- --no-resolv --server=8.8.8.8 &
+dnsmasq --no-daemon --log-queries --keep-in-foreground --log-facility=- --no-resolv &
+# --server=8.8.8.8 &
 DNSMASQ_PID=$!
 
 # Dar permisos correctos al archivo de hosts

@@ -5,7 +5,7 @@ RUN mkdir -p /etc/docker-gen/templates /backups/mysql /backups/postgres
 # Instalar dependencias básicas y NAS
 RUN apt-get update && \
     apt-get install -y dnsmasq wget ca-certificates net-tools iproute2 \
-    rsync cron openssh-server postgresql-client nano postgresql-client iputils-ping net-tools && \
+    rsync cron openssh-server postgresql-client nano postgresql-client default-mysql-client iputils-ping net-tools && \
     rm -rf /var/lib/apt/lists/*
 
 # Configurar Docker Gen

@@ -8,9 +8,9 @@ if ! command -v ip > /dev/null 2>&1; then
 fi
 
 # Configurar la ruta predeterminada para la red de desarrollo
-echo "Configurando ruta predeterminada via 172.40.0.2..."
+echo "Configurando ruta predeterminada via 172.40.0.150..."
 ip route del default 2>/dev/null || true
-ip route add default via 172.40.0.2
+ip route add default via 172.40.0.150
 
 # Verificar que las rutas estén configuradas correctamente
 echo "Tabla de enrutamiento configurada:"

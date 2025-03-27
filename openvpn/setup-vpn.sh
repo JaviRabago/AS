@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-# Configurar 172.10.0.2 como ruta predeterminada para todo el tráfico
+# Configurar 172.10.0.150 como ruta predeterminada para todo el tráfico
 ip route del default
-ip route add default via 172.10.0.2
+ip route add default via 172.10.0.150
 
 
 # Variables

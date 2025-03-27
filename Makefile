@@ -57,7 +57,10 @@ conprod:
 	sudo openvpn --config svc_prod_user.ovpn
 
 conmysql:
-	mysql -h 172.40.0.3 -u john -pmysql tasksdb
+	mysql -h 172.40.0.2 -u john -pmysql tasksdb
+
+conpostgres:
+	psql -h 172.30.0.2 -U john -d tasksdb -W
 
 push:
 	git add .
