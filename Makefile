@@ -44,6 +44,12 @@ tcp:
 copia:
 	docker exec dns_server /backup.sh
 
+restmysql:
+	docker exec dns_server /restoremysql.sh
+
+restpostgres:
+	docker exec dns_server /restorepostgres.sh
+
 extraer:
 	docker exec -it openvpn bash -c "ovpn_getclient dev_user > /etc/openvpn/clients/dev_user.ovpn"
 	docker exec -it openvpn bash -c "ovpn_getclient svc_prod_user > /etc/openvpn/clients/svc_prod_user.ovpn"

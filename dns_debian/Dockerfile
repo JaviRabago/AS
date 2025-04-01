@@ -19,9 +19,11 @@ COPY dnsmasq.conf /etc/dnsmasq.conf
 COPY dnsmasq.tmpl /etc/docker-gen/templates/dnsmasq.tmpl
 COPY start.sh /start.sh
 COPY backup.sh /backup.sh
+COPY restoremysql.sh /restoremysql.sh
+COPY restorepostgres.sh /restorepostgres.sh
 
 # Configurar permisos
-RUN chmod +x /start.sh /backup.sh && \
+RUN chmod +x /start.sh /backup.sh /restoremysql.sh /restorepostgres.sh && \
     mkdir -p /var/run/sshd && \
     chmod 0755 /var/run/sshd && \
     echo "root:password" | chpasswd
