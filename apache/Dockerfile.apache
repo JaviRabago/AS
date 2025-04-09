@@ -1,18 +1,51 @@
 FROM httpd:alpine
 
-# Instalar OpenSSH y otras dependencias necesarias
-RUN apk add --no-cache openssh openssh-server iproute2 supervisor procps curl net-tools
+# Instalar OpenSSH, Supervisor y PAM + Google Authenticator
+RUN apk update && \
+    apk add --no-cache \
+    linux-pam google-authenticator \
+    openssh-server-pam \
+    iproute2 supervisor procps curl net-tools
+
+RUN ln -sf /usr/sbin/sshd.pam /usr/sbin/sshd
 
 # Configurar SSH
 RUN mkdir -p /var/run/sshd && \
-    ssh-keygen -A && \
-    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
-    echo "root:password" | chpasswd && \
-    adduser -D john && \
+    ssh-keygen -A
+
+RUN grep -qxF 'UsePAM yes' /etc/ssh/sshd_config || echo 'UsePAM yes' >> /etc/ssh/sshd_config
+RUN grep -qxF 'ChallengeResponseAuthentication yes' /etc/ssh/sshd_config || echo 'ChallengeResponseAuthentication yes' >> /etc/ssh/sshd_config
+RUN grep -qxF 'PasswordAuthentication yes' /etc/ssh/sshd_config || echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
+
+
+RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+RUN echo "root:password" | chpasswd
+RUN adduser -D john && \
     echo "john:password" | chpasswd && \
     mkdir -p /home/john/.ssh && \
     chmod 700 /home/john/.ssh && \
     chown -R john:john /home/john
+
+# Define la ruta del archivo de configuración PAM para sshd
+ARG PAM_SSHD_CONF=/etc/pam.d/sshd
+
+RUN echo "#%PAM-1.0" > $PAM_SSHD_CONF && \
+    echo "# Cargar variables de entorno (opcional, buena práctica)" >> $PAM_SSHD_CONF && \
+    echo "auth       required     pam_env.so" >> $PAM_SSHD_CONF && \
+    echo "# Verificación Google Authenticator (requerida)" >> $PAM_SSHD_CONF && \
+    echo "auth       required     pam_google_authenticator.so nullok" >> $PAM_SSHD_CONF && \
+    echo "# Verificación de contraseña estándar Unix (requerida)" >> $PAM_SSHD_CONF && \
+    echo "auth       required     pam_unix.so try_first_pass" >> $PAM_SSHD_CONF && \
+    echo "" >> $PAM_SSHD_CONF && \
+    echo "# Gestión de Cuentas (¿Usuario válido?, ¿Expirado?)" >> $PAM_SSHD_CONF && \
+    echo "account    required     pam_unix.so" >> $PAM_SSHD_CONF && \
+    echo "" >> $PAM_SSHD_CONF && \
+    echo "# Gestión de Contraseñas (Cambios de contraseña, no usado directamente en login SSH)" >> $PAM_SSHD_CONF && \
+    echo "password   required     pam_unix.so" >> $PAM_SSHD_CONF && \
+    echo "" >> $PAM_SSHD_CONF && \
+    echo "# Gestión de Sesiones (Logs, Límites, etc.)" >> $PAM_SSHD_CONF && \
+    echo "session    required     pam_limits.so" >> $PAM_SSHD_CONF && \
+    echo "session    required     pam_unix.so" >> $PAM_SSHD_CONF
 
 # Crear directorios necesarios
 RUN mkdir -p /etc/supervisor.d/ /var/log/apache /var/log/supervisor
