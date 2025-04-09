@@ -50,10 +50,10 @@ iptables -A FORWARD -s $DEV_NET -d $SERVICE_NET -j ACCEPT
 # 3. CONFIGURACIÓN DE POSTGRES (EXCEPCIÓN)
 echo "Configurando excepción para postgres..."
 POSTGRES_IP=$(getent hosts prod-postgres | awk '{ print $1 }')
-# if [ -z "$POSTGRES_IP" ]; then
-#     echo "No se pudo obtener la IP de postgres, usando valor estático"
-#     POSTGRES_IP="172.30.0.2" 
-# fi
+if [ -z "$POSTGRES_IP" ]; then
+    echo "No se pudo obtener la IP de postgres, usando valor estático"
+    POSTGRES_IP="172.30.0.2"  # IP estática según logs
+fi
 echo "IP de postgres detectada: $POSTGRES_IP"
 
 # Permitir comunicación entre postgres y DNS
@@ -61,7 +61,8 @@ echo "Permitiendo comunicación específica postgres -> dns..."
 iptables -A FORWARD -s $POSTGRES_IP -d $DNS_IP -j ACCEPT
 iptables -A FORWARD -d $POSTGRES_IP -s $DNS_IP -j ACCEPT
 
-echo "Configurando acceso al DNS..."
+# --- RESOLUCIÓN DNS (limitada) ---
+echo "Configurando acceso limitado al DNS..."
 # Permitir que todos se comuniquen con el DNS
 for net in "$PROD_NET" "$DEV_NET" "$SERVICE_NET" "$VPN_NET"; do
     iptables -A FORWARD -s $net -d $DNS_IP -p udp --dport 53 -j ACCEPT
@@ -131,7 +132,7 @@ echo "Configurando OpenVPN (puerto 1194/UDP)..."
 OPENVPN_IP=$(getent hosts openvpn | awk '{ print $1 }')
 if [ -z "$OPENVPN_IP" ]; then
     echo "No se pudo obtener la IP de OpenVPN, usando valor estático"
-    OPENVPN_IP="172.10.0.3" 
+    OPENVPN_IP="172.10.0.3"  # IP estática según logs
 fi
 echo "IP de OpenVPN detectada: $OPENVPN_IP"
 
@@ -166,7 +167,7 @@ done
 
 # --- BLOQUEO DE TRÁFICO SALIENTE A INTERNET ---
 echo "Aplicando bloqueo adicional para acceso a Internet..."
-# Bloquear todo el tráfico que sale al exterior
+# Bloquear todo el tráfico que sale al mundo exterior
 for net in "$PROD_NET" "$DEV_NET" "$SERVICE_NET" "$VPN_NET"; do
     iptables -A FORWARD -s $net ! -d 10.0.0.0/8 ! -d 172.16.0.0/12 ! -d 192.168.0.0/16 -j DROP
 done
