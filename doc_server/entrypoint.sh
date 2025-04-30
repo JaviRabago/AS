@@ -3,8 +3,17 @@
 # Crear directorios necesarios para vsftpd
 mkdir -p /var/run/vsftpd/empty
 
+# Instalar acl si no está instalado
+apt-get update && apt-get install -y acl
+
 # Asegurar permisos correctos
 echo "Verificando y asegurando permisos..."
+
+# Permisos para el directorio principal
+chmod 755 /var/doc_server
+chmod 755 /var/doc_server/desarrollo
+chmod 755 /var/doc_server/revision
+chmod 755 /var/doc_server/publico
 
 # Para cada programa, verificar permisos
 for i in $(seq 1 5); do
@@ -13,6 +22,8 @@ for i in $(seq 1 5); do
     # Desarrollo: empleadoX tiene control total
     chmod 770 /var/doc_server/desarrollo/SW$i
     chown -R empleado$i:empleado$i /var/doc_server/desarrollo/SW$i
+    # Asegurar que revisor pueda acceder
+    setfacl -m u:revisor:rwx /var/doc_server/desarrollo/SW$i
     
     # Revisión: empleadoX puede escribir, revisor tiene control total
     chmod 770 /var/doc_server/revision/SW$i

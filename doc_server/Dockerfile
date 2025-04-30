@@ -1,4 +1,5 @@
-FROM debian:bookworm
+FROM debian:bullseye
+
 # Instalación de paquetes necesarios
 RUN apt-get update && apt-get install -y \
     samba \
@@ -9,6 +10,8 @@ RUN apt-get update && apt-get install -y \
     iproute2 \
     iputils-ping \
     procps \
+    acl \
+    nano \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
