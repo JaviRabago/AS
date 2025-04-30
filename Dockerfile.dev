@@ -1,7 +1,7 @@
 FROM node:18-alpine
 
 # Instalar OpenSSH Server y dependencias necesarias
-RUN apk add --no-cache openssh shadow supervisor && \
+RUN apk add --no-cache openssh samba-client lftp shadow supervisor && \
     ssh-keygen -A
 
 # Crear usuario john y establecer contraseña
