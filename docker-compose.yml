@@ -259,12 +259,6 @@ services:
       - ./doc_server/smb.conf:/etc/samba/smb.conf
       - ./doc_server/vsftpd.conf:/etc/vsftpd.conf
       - ./doc_server/entrypoint.sh:/entrypoint.sh
-    ports:
-      - "139:139"
-      - "445:445"
-      - "21:21"
-      - "20:20"
-      - "30000-30020:30000-30020"
     cap_add:
       - NET_ADMIN
     dns:

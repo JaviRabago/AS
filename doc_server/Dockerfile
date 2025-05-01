@@ -65,11 +65,11 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Puerto para Samba
-EXPOSE 139 445
-# Puertos para FTP
-EXPOSE 21 20
-# Puertos pasivos de FTP
-EXPOSE 30000-30020
+# EXPOSE 139 445
+# # Puertos para FTP
+# EXPOSE 21 20
+# # Puertos pasivos de FTP
+# EXPOSE 30000-30020
 
 # Comando de inicio
 ENTRYPOINT ["/entrypoint.sh"]
