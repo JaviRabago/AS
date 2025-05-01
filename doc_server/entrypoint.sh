@@ -3,8 +3,13 @@
 # Crear directorios necesarios para vsftpd
 mkdir -p /var/run/vsftpd/empty
 
+# Corregir permisos del archivo de configuración de vsftpd
+cp /etc/vsftpd.conf /etc/vsftpd.conf.orig
+chown root:root /etc/vsftpd.conf
+chmod 600 /etc/vsftpd.conf
+
 # Instalar acl si no está instalado
-apt-get update && apt-get install -y acl
+# apt-get update && apt-get install -y acl
 
 # Asegurar permisos correctos
 echo "Verificando y asegurando permisos..."
@@ -46,13 +51,22 @@ echo "Iniciando servicios Samba y FTP..."
 service smbd start
 service nmbd start
 
-# Iniciar VSFTPD
-service vsftpd start
+# Verificar estado de Samba
+echo "Estado del servicio Samba:"
+service smbd status
 
-# Imprimir información de servicio
-echo "Servidor Samba iniciado en puertos 139, 445"
-echo "Servidor FTP iniciado en puerto 21 (control) y 20 (datos)"
-echo "Puertos pasivos FTP: 30000-30020"
+# Iniciar VSFTPD con depuración
+echo "Iniciando VSFTPD con depuración..."
+vsftpd /etc/vsftpd.conf &
+
+# Verificar estado de VSFTPD
+echo "Verificando que VSFTPD esté en ejecución:"
+ps aux | grep vsftpd
+ss -tulpn | grep vsftpd
+
+# Verificar que el puerto 21 esté escuchando
+echo "Verificando puerto 21:"
+ss -tulpn | grep ':21'
 
 echo "Usuarios configurados:"
 for i in $(seq 1 5); do
