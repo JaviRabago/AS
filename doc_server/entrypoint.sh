@@ -1,15 +1,25 @@
 #!/bin/bash
 
+#Configurar 172.40.0.150 como ruta predeterminada para todo el tráfico
+ip route del default
+ip route add default via 172.40.0.150
+
 # Crear directorios necesarios para vsftpd
 mkdir -p /var/run/vsftpd/empty
+
+# Asegurar que hay contenido en los directorios públicos
+for i in $(seq 1 5); do
+    echo "Creando archivos de ejemplo en el directorio público SW$i"
+    mkdir -p /var/doc_server/publico/SW$i
+    echo "Este es un archivo de ejemplo del programa SW$i" > /var/doc_server/publico/SW$i/leeme.txt
+    echo "Contenido técnico de SW$i" > /var/doc_server/publico/SW$i/documentacion.txt
+    echo "Manual de usuario de SW$i" > /var/doc_server/publico/SW$i/manual.txt
+done
 
 # Corregir permisos del archivo de configuración de vsftpd
 cp /etc/vsftpd.conf /etc/vsftpd.conf.orig
 chown root:root /etc/vsftpd.conf
 chmod 600 /etc/vsftpd.conf
-
-# Instalar acl si no está instalado
-# apt-get update && apt-get install -y acl
 
 # Asegurar permisos correctos
 echo "Verificando y asegurando permisos..."
@@ -40,9 +50,9 @@ for i in $(seq 1 5); do
     chown revisor:revisor /var/doc_server/publico/SW$i
 done
 
-# Configurar permisos para FTP anónimo
-chown -R nobody:nogroup /var/doc_server/publico
-chmod -R 755 /var/doc_server/publico
+# # Configurar permisos para FTP anónimo
+# chown nobody:nogroup /var/doc_server/publico
+# chmod 755 /var/doc_server/publico
 
 # Iniciar servicios
 echo "Iniciando servicios Samba y FTP..."

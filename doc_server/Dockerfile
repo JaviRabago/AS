@@ -64,7 +64,7 @@ COPY entrypoint.sh /entrypoint.sh
 # Make entrypoint executable
 RUN chmod +x /entrypoint.sh
 
-# Puerto para Samba
+# # Puerto para Samba
 # EXPOSE 139 445
 # # Puertos para FTP
 # EXPOSE 21 20

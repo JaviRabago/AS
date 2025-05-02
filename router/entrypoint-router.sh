@@ -195,4 +195,79 @@ iptables -t nat -L -v -n
 echo "Iniciando servicio SSH..."
 /usr/sbin/sshd -D &
 
+# --- CONFIGURACIÓN PARA SERVICIOS DOCUMENTACIÓN ---
+echo "Configurando reglas para servicios de documentación..."
+
+# --- CORRECCIÓN REGLAS FTP PASIVO ---
+echo "Configurando reglas especiales para FTP pasivo entre redes..."
+
+# Cargar módulo de seguimiento de conexiones FTP
+echo "Cargando módulo de seguimiento para FTP..."
+modprobe nf_conntrack_ftp
+echo 1 > /proc/sys/net/netfilter/nf_conntrack_helper
+
+# Obtener las direcciones IP de los servidores
+DOC_SERVER_IP=$(getent hosts dev-doc-server | awk '{ print $1 }')
+if [ -z "$DOC_SERVER_IP" ]; then
+    echo "No se pudo obtener la IP del servidor de documentación, usando valor estático"
+    DOC_SERVER_IP="172.40.0.10"  # IP estática según configuración
+fi
+echo "IP del servidor de documentación detectada: $DOC_SERVER_IP"
+
+SFTP_SERVER_IP=$(getent hosts prod-sftp | awk '{ print $1 }')
+if [ -z "$SFTP_SERVER_IP" ]; then
+    echo "No se pudo obtener la IP del servidor SFTP, usando valor estático"
+    SFTP_SERVER_IP="172.30.0.20"  # IP estática según configuración
+fi
+echo "IP del servidor SFTP detectada: $SFTP_SERVER_IP"
+
+# Permitir explícitamente tráfico FTP pasivo entre SFTP y servidor de documentación
+echo "Permitiendo tráfico FTP pasivo entre $SFTP_SERVER_IP y $DOC_SERVER_IP"
+
+# 1. Permitir todo el tráfico entre estos dos servidores
+iptables -A FORWARD -s $SFTP_SERVER_IP -d $DOC_SERVER_IP -j ACCEPT
+iptables -A FORWARD -s $DOC_SERVER_IP -d $SFTP_SERVER_IP -j ACCEPT
+
+# 2. Reglas específicas para FTP pasivo (puerto de control + rango de puertos pasivos)
+iptables -A FORWARD -p tcp -s $SFTP_SERVER_IP -d $DOC_SERVER_IP --dport 21 -j ACCEPT
+iptables -A FORWARD -p tcp -s $DOC_SERVER_IP -d $SFTP_SERVER_IP --sport 21 -j ACCEPT
+iptables -A FORWARD -p tcp -s $SFTP_SERVER_IP -d $DOC_SERVER_IP --dport 20 -j ACCEPT
+iptables -A FORWARD -p tcp -s $DOC_SERVER_IP -d $SFTP_SERVER_IP --sport 20 -j ACCEPT
+
+# 3. Reglas para el rango de puertos pasivos
+iptables -A FORWARD -p tcp -s $SFTP_SERVER_IP -d $DOC_SERVER_IP --dport 30000:30020 -j ACCEPT
+iptables -A FORWARD -p tcp -s $DOC_SERVER_IP -d $SFTP_SERVER_IP --sport 30000:30020 -j ACCEPT
+
+# 4. Reglas para conexiones relacionadas y establecidas (importante para FTP)
+iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+# Verificar reglas
+echo "Reglas actualizadas para FTP:"
+iptables -L FORWARD -n | grep -E "($SFTP_SERVER_IP|$DOC_SERVER_IP)"
+
+# 1. Limpiar reglas existentes que podrían estar causando conflictos
+echo "Limpiando reglas existentes para puerto 2222..."
+iptables -t nat -D PREROUTING -p tcp --dport 2222 -j DNAT --to-destination $SFTP_SERVER_IP:22 2>/dev/null || true
+
+# 2. Asegurar que la interfaz está correctamente configurada para aceptar conexiones
+echo "Configurando interfaz para aceptar conexiones externas..."
+iptables -A INPUT -p tcp --dport 2222 -j ACCEPT
+
+# 3. Configurar la redirección NAT correctamente
+echo "Configurando redirección NAT para puerto 2222 -> $SFTP_SERVER_IP:22..."
+iptables -t nat -A PREROUTING -p tcp --dport 2222 -j DNAT --to-destination $SFTP_SERVER_IP:22
+iptables -t nat -A POSTROUTING -p tcp -d $SFTP_SERVER_IP --dport 22 -j SNAT --to-source 172.30.0.150
+
+# 4. Asegurar que el forward está permitido explícitamente
+echo "Permitiendo forward explícito para SFTP..."
+iptables -A FORWARD -p tcp -d $SFTP_SERVER_IP --dport 22 -j ACCEPT
+
+# 5. Verificar reglas
+echo "Verificando reglas NAT para puerto 2222:"
+iptables -t nat -L PREROUTING -n --line-numbers | grep 2222
+iptables -t nat -L POSTROUTING -n --line-numbers | grep $SFTP_SERVER_IP
+
+echo "Verificando reglas de FORWARD para puerto 22:"
+iptables -L FORWARD -n | grep $SFTP_SERVER_IP
+
 tail -f /dev/null

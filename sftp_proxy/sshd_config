@@ -1,0 +1,37 @@
+# Configuración SSHD para servidor SFTP seguro
+Port 22
+
+# Configuración de logging - nivel DEBUG para diagnóstico
+SyslogFacility AUTH
+LogLevel INFO
+
+# Configuración básica de seguridad
+Protocol 2
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+
+# Autenticación
+PermitRootLogin no
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+UsePAM yes
+
+# Otras configuraciones de seguridad
+MaxAuthTries 6
+LoginGraceTime 30
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# Configuración específica para SFTP
+Subsystem sftp internal-sftp
+
+# Configuración específica para el usuario SFTP
+Match User sftpuser
+    ChrootDirectory /home/sftpuser
+    ForceCommand internal-sftp
+    AllowTcpForwarding no
+    X11Forwarding no
+    PermitTTY no
