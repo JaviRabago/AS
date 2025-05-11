@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   router:
     build: ./router
@@ -30,7 +32,6 @@ services:
       - mysql
       - apache
 
-  # Aplicación en entorno de producción
   app-prod:
     build:
       context: .
@@ -61,9 +62,7 @@ services:
     volumes:
       - ./app/app-prod-wrapper.sh:/app-wrapper.sh
       - ./app/supervisord.conf:/etc/supervisord.conf
-    # entrypoint: ["/bin/sh", "/app-wrapper.sh"]
 
-  # Nginx (Producción)
   nginx:
     build:
       context: ./nginx
@@ -86,7 +85,6 @@ services:
     depends_on:
       - app-prod
 
-  # PostgreSQL (Producción)
   postgres:
     image: postgres:14-alpine
     container_name: prod-postgres
@@ -116,7 +114,6 @@ services:
       retries: 5
       start_period: 30s
 
-  # Aplicación en entorno de desarrollo
   app-dev:
     build:
       context: .
@@ -149,10 +146,8 @@ services:
       - /app/node_modules
       - ./app/app-dev-wrapper.sh:/app-wrapper.sh
       - ./app/supervisord.conf:/etc/supervisord.conf
-    # entrypoint: ["/bin/sh", "/app-wrapper.sh"]
+      - doc_data:/var/doc_server  # ← VOLUMEN AÑADIDO
 
-
-  # MySQL (Desarrollo)
   mysql:
     build:
       context: ./mysql
@@ -181,8 +176,6 @@ services:
       retries: 15
       start_period: 60s
 
-
-  # Apache (Desarrollo)
   apache:
     build:
       context: ./apache
@@ -209,7 +202,6 @@ services:
     depends_on:
       - app-dev
 
-  # DNS + NAS
   dns_server:
     build: ./dns_debian
     container_name: dns_server
@@ -219,14 +211,12 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - nas_data:/backups
-      # - ./backups:/backups
     cap_add:
       - NET_ADMIN
     dns:
       - 172.20.0.100
     restart: unless-stopped
 
-  # VPN
   openvpn:
     image: kylemanna/openvpn
     container_name: openvpn
@@ -247,7 +237,6 @@ services:
       - router
     entrypoint: ["/bin/sh", "/setup-vpn.sh"]
 
-  # Servidor Samba y FTP para documentación
   doc_server:
     build: ./doc_server
     container_name: dev-doc-server
@@ -272,7 +261,6 @@ services:
     depends_on:
       - dns_server
 
-  # Servidor SFTP seguro para acceso externo a la documentación
   sftp_proxy:
     build: ./sftp_proxy
     container_name: prod-sftp
@@ -318,8 +306,6 @@ networks:
     ipam:
       config:
         - subnet: 172.10.0.0/24
-
-
 
 volumes:
   postgres_data:
