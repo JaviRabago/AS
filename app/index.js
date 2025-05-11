@@ -31,6 +31,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+// Añadir ruta para servir contenido estático desde /var/doc_server/publico
+app.use('/publico', express.static('/var/doc_server/publico'))
 
 // Función para intentar la conexión a la base de datos con reintentos
 async function connectWithRetry(maxRetries = 25, delay = 15000) {
