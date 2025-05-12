@@ -189,6 +189,8 @@ services:
       - ./apache/supervisord.conf:/etc/supervisord.conf:ro
       - ./apache/apache-ssh-supervisor.conf:/etc/supervisor.d/apache-ssh-supervisor.conf:ro
       - ./apache/start-services.sh:/start-services.sh:ro
+      - doc_data:/var/doc_server  
+      - ./apache/.htpasswd:/usr/local/apache2/.htpasswd:ro
     networks:
       - development
     cap_add:
