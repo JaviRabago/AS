@@ -3,6 +3,8 @@
 echo 'Router interfaces:'
 ip addr
 
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
 echo "Setting up routing between networks..."
 
 # --- CONFIGURACIÓN INICIAL ---

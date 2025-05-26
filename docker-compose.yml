@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   router:
@@ -287,6 +286,43 @@ services:
       - doc_server
       - router
 
+  postfix:
+    build: ./postfix
+    container_name: prod-postfix
+    networks:
+      production:
+        ipv4_address: 172.30.0.25
+    cap_add:
+      - NET_ADMIN
+    dns:
+      - 172.20.0.100
+    sysctls:
+      - net.ipv4.ip_forward=1
+    volumes:
+      - maildata:/var/mail
+    restart: unless-stopped
+    extra_hosts:
+      - "dns_server:172.20.0.100"
+
+  correo-tester:
+    build: ./postfix-test
+    container_name: postfix-tester
+    networks:
+      production:
+        ipv4_address: 172.30.0.99
+    cap_add:
+      - NET_ADMIN
+    dns:
+      - 172.20.0.100
+    sysctls:
+      - net.ipv4.ip_forward=1
+    extra_hosts:
+      - "dns_server:172.20.0.100"
+    # stdin_open: true
+    # tty: true
+    # command: sh -c 'echo "set smtp=prod-postfix" > /etc/mail.rc && tail -f /dev/null'
+
+    
 networks:
   production:
     driver: bridge
@@ -315,3 +351,4 @@ volumes:
   nas_data:
   openvpn_data:
   doc_data:
+  maildata:
