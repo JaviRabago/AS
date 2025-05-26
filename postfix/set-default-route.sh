@@ -15,7 +15,3 @@ tail -F /var/log/mail.log &
 
 echo "Ruta configurada. Ejecutando proceso principal: $@"
 exec "$@"
-
-
-# smtpd_relay_restrictions = permit_mynetworks, reject_unauth_destination
-# smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination

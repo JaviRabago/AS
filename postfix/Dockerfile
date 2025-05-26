@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM debian:latest
 
 # Instala herramientas necesarias
 RUN apt-get update && \
